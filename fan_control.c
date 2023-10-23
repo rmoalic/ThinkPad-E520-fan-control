@@ -1,30 +1,45 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <sys/mman.h>
+#include <stdbool.h>
 #include <fcntl.h>
 
 #include <unistd.h>
 
 #define EC_FAN_OFFSET 0x93
 
-void set_speed(int fd, uint8_t speed) {
+bool set_speed(int fd, uint8_t speed) {
   uint8_t ec[2] = {0x14, speed};
-  pwrite(fd, ec, sizeof(ec), EC_FAN_OFFSET);
+  ssize_t ret = pwrite(fd, ec, sizeof(ec), EC_FAN_OFFSET);
+  if (ret == -1) {
+    perror("write error: ");
+    return false;
+  }
+  return true;
 }
 
-void set_auto(int fd) {
+bool set_auto(int fd) {
   uint8_t ec[1] = {0x04};
-  pwrite(fd, ec, sizeof(ec), EC_FAN_OFFSET);
+  ssize_t ret = pwrite(fd, ec, sizeof(ec), EC_FAN_OFFSET);
+  if (ret == -1) {
+    perror("write error: ");
+    return false;
+  }
+  return true;
 }
 
-void print_fan_info(int fd) {
+bool print_fan_info(int fd) {
   uint8_t ec[3];
-  pread(fd, ec, 3, EC_FAN_OFFSET);
+  ssize_t ret = pread(fd, ec, 3, EC_FAN_OFFSET);
+  if (ret == -1) {
+    perror("read error: ");
+    return false;
+  }
 
   printf("         fan mode : %x\n", ec[0]);
   printf("Selected fan speed: %3d (0x%2x)\n", ec[1], ec[1]);
   printf("Actual   fan speed: %3d (0x%2x)\n", ec[2], ec[2]);
+  return true;
 }
 
 void print_usage(char** argv) {
@@ -40,10 +55,9 @@ int main(int argc, char** argv) {
   int fd = open("/sys/kernel/debug/ec/ec0/io", O_RDWR);
   if (fd < 0) {
     perror("open ec0/io error");
+    fprintf(stderr, "note: run 'modprobe ec_sys write_support=1' to load the required module\nONLY RUN THIS PROGRAM ON A LENOVO THINKPAD E520\n");
     return EXIT_FAILURE;
   }
-
-  // modprobe ec_sys write_support=1
 
   int opt;
   int speed;
@@ -54,14 +68,16 @@ int main(int argc, char** argv) {
       print_fan_info(fd);
       break;
     case 'a':
-      set_auto(fd);
-      printf("Set to auto\n");
+      if (set_auto(fd)) {
+        printf("Set to auto\n");
+      }
       break;
     case 's':
       speed = atoi(optarg);
       if (speed > 255) speed = 255;
-      set_speed(fd, (uint8_t) speed);
-      printf("Set to speed %d (0x%x)\n", speed, speed);
+      if (set_speed(fd, (uint8_t) speed)) {
+        printf("Set to speed %d (0x%x)\n", speed, speed);
+      }
       break;
     default:
       print_usage(argv);

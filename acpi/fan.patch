@@ -1,0 +1,43 @@
+21c21
+< DefinitionBlock ("", "DSDT", 1, "LENOVO", "TP-8H   ", 0x00000126)
+---
+> DefinitionBlock ("", "DSDT", 1, "LENOVO", "TP-8H   ", 0x00000127)
+4924,4925c4924,4927
+<                         Offset (0x95), 
+<                         FSP1,   8, 
+---
+>                         Offset (0x93), 
+>                         FSP1,   8,
+>                         FSC1,   8,
+>                         FSR1,   8,
+6786a6789,6818
+>         	Device (FAN0)
+>                {
+>                      Name (FCTL, 0)
+>                      Name (_HID, EISAID("PNP0C0B"))  
+>                      Name (_UID, 0)
+>                      Name (_FIF, Package () {0, 1, 1, 0})
+>                      Name (INT1, 0)
+>                      Name (INT2, 0)
+>  
+>                      Name (_FPS, Package () {
+>                         0,
+>                         Package () {0, 0x0FFFFFFFF, 255,  0xFFFFFFFF,  0xFFFFFFFF},
+>                         Package () {100, 0x0FFFFFFFF, 100,  0xFFFFFFFF,  0xFFFFFFFF},
+>                      })
+>  
+>                      Method (_FSL, 1) {
+>                         /* Set \_SB.PCI0.LPCB.H_EC.FSP1 to 0x14 to be able to change mode */
+>                         Local0 = ((0xff - Arg0) << One)
+>                         Store (Local0, \_SB.PCI0.LPCB.H_EC.FSC1)
+>                      }
+>  
+>                      Method (_FST, 0) {
+>                         Local0 = (0xff - \_SB.PCI0.LPCB.H_EC.FSR1)
+>                         INT1 = (Local0 * 0x15)
+>                         Local1 = ((0xff - \_SB.PCI0.LPCB.H_EC.FSC1) >> One)
+>                         INT2 = Local1
+>                         Return (Package () {0x00, INT2, INT1})
+>                      }
+>                 }
+> 		
