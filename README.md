@@ -22,6 +22,11 @@ The [Embedded Controller](https://en.wikipedia.org/wiki/Embedded_controller) con
 
 In automatic mode, setting the desired fan speed does nothing.
 Switching to manual mode without providing a desired fan speed set the speed to 0xa9.
+The control register is a bitfield.
+
+| bit 4             | bit 3 | bit 2                | bit 1       | bit 0 |
+|-------------------|-------|----------------------|-------------|-------|
+| Manual(1) Auto(0) | ???   | Unknown (default: 1) | Fan error ? | ???   |
 
 The fan is a `Delta KSB0405HB`, the datasheet indicate that the max speed is 3150 RPM.
 ```3150 / (0xff - 0x66) = 20.6```
