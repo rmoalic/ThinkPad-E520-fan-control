@@ -80,3 +80,5 @@ $ sudo ./fan_gui.tcl
 ```
 !! Don't set the sticky bit on the tcl interpreter.
 
+![Screenshot of fan_gui.tcl](screen.png)
+
