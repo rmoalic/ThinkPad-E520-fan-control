@@ -45,6 +45,7 @@ wm maxsize . 140 260
 wm resizable . true false
 wm protocol . WM_DELETE_WINDOW { exit }
 
+label .l_fan_error -text "⚠ Error ⚠" -background orange
 label .l_fan_actual -textvariable  f_fan_actual_val
 label .l_fan_rpm -textvariable  f_fan_rpm
 label .l_package_temp -textvariable f_package_temp
@@ -60,7 +61,7 @@ scale .s_fan_select -label "selected fan speed" -command setfanspeed -from 255 -
 checkbutton .cb_fan_auto -text "Auto" -onvalue "auto" -offvalue "manual" -command setfanmode_from_button -variable fan_auto_button
 
 pack .l_fan_actual
-pack .l_fan_rpm .l_package_temp
+pack .l_fan_rpm .l_package_temp -fill x
 pack .c_fan_graph -fill x
 pack .s_fan_actual -fill x
 pack .s_fan_select -fill x
@@ -115,6 +116,11 @@ proc update_fan_mode_ui { new_mode } {
     }
 }
 
+proc update_fan_error_ui {} {
+    place .l_fan_error -in .l_fan_actual -relx 0
+    raise .l_fan_error
+}
+
 set prev_fan_mode 0
 set prev_temp 0
 set gc_counter 0
@@ -133,12 +139,14 @@ while {1} {
     set f_fan_actual_val "current fan speed: $fan_actual"
     set f_fan_rpm "$fan_rpm rpm"
 
-
     if {$fan_mode != $prev_fan_mode} {
         if { [expr { $fan_mode & 0x10 }] > 0 } {
             update_fan_mode_ui "manual"
         } else {
             update_fan_mode_ui "auto"
+        }
+        if { [expr { $fan_mode & 0x02}] > 0} {
+            update_fan_error_ui
         }
         set prev_fan_mode $fan_mode
     }
